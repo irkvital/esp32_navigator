@@ -16,7 +16,7 @@ static const int DISPLAY_COMMAND_BITS = 8;
 static const int DISPLAY_PARAMETER_BITS = 8;
 static const unsigned int DISPLAY_REFRESH_HZ = 60000000;
 static const int DISPLAY_SPI_QUEUE_LEN = 10;
-static const int SPI_MAX_TRANSFER_SIZE = 32768*4;
+static const int SPI_MAX_TRANSFER_SIZE = 32768;
 
 #if CONFIG_IDF_TARGET_ESP32S3
 static const gpio_num_t TFT_CS = GPIO_NUM_4;
@@ -41,7 +41,7 @@ static const gpio_num_t TFT_BACKLIGHT = GPIO_NUM_18;
 static const lcd_rgb_element_order_t TFT_COLOR_MODE = COLOR_RGB_ELEMENT_ORDER_BGR;
 
 // Default to 25 lines of color data
-static const size_t LV_BUFFER_SIZE = DISPLAY_HORIZONTAL_PIXELS * 25;
+static const size_t LV_BUFFER_SIZE = DISPLAY_HORIZONTAL_PIXELS * 50;
 static const int LVGL_UPDATE_PERIOD_MS = 5;
 
 static const ledc_mode_t BACKLIGHT_LEDC_MODE = LEDC_LOW_SPEED_MODE;
