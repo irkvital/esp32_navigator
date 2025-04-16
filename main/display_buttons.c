@@ -255,11 +255,11 @@ void mathTiles(int zoom, float lat, float lon, float* xtile, float* ytile) {
 
 void mapInit() {
     img_base = lv_obj_create(lv_scr_act());
-    lv_obj_set_style_radius(img_base, LV_RADIUS_CIRCLE, 0);
+    // lv_obj_set_style_radius(img_base, LV_RADIUS_CIRCLE, 0);
     lv_obj_set_style_clip_corner(img_base, true, 0);
-    lv_obj_set_size(img_base, 300, 300);
+    lv_obj_set_size(img_base, 320, 480);
     // lv_obj_clear_flag(img_base, LV_OBJ_FLAG_FLOATING);
-    lv_obj_remove_style(img_base, NULL, LV_PART_SCROLLBAR);
+    // lv_obj_remove_style(img_base, NULL, LV_PART_SCROLLBAR);
 
     // lv_obj_clear_flag(img_base, LV_OBJ_FLAG_SCROLLABLE);
     
@@ -283,25 +283,35 @@ void drawTile(int zoom) {
     float ytile;
     mathTiles(zoom, lat, lon, &xtile, &ytile);
     // ESP_LOGI("MATH", "xtile = %f  ytile = %f", xtile, ytile);
-    int offset_x = 128 - (xtile - (int)xtile) * 256;
-    int offset_y = 128 - (ytile - (int)ytile) * 256;
+    // int offset_x = 128 - (xtile - (int)xtile) * 256;
+    // int offset_y = 128 - (ytile - (int)ytile) * 256;
 
-    char path[50];
-    lv_png_init();
-    lv_img_cache_set_size(9);
-    for (int i = 0; i < 9; i++) {
-        // fill img
-        int ii = i / 3;
-        int ij = i % 3;
-        int offset_x_tmp = offset_x + 256 * (ij - 1);
-        int offset_y_tmp = offset_y + 256 * (ii - 1);
-        if ((int)xtile != (int)xtile_old || (int)ytile != (int)ytile_old) {
+    int offset_x = 0;
+    int offset_y = 0;
+
+    if ((int)xtile != (int)xtile_old || (int)ytile != (int)ytile_old) {
+        char path[50];
+        lv_png_init();
+        ESP_LOGI("!!!", "REDRAW");
+        lv_img_cache_set_size(18);
+        for (int i = 0; i < 9; i++) {
+            // fill img
+            int ii = i / 3;
+            int ij = i % 3;
+            offset_x = 256 * (ij - 1);
+            offset_y = 256 * (ii - 1);
             sprintf(path, "A:/sdcard/Tiles/%d/%d/%d.png", zoom, (int)xtile + ij - 1, (int)ytile + ii - 1);
             lv_img_set_src(img[i], path);
+            lv_obj_align(img[i], LV_ALIGN_CENTER, offset_x, offset_y);
+            lv_img_set_pivot(img[i], -offset_x + 128, -offset_y + 128);
         }
-        lv_obj_align(img[i], LV_ALIGN_CENTER, offset_x_tmp, offset_y_tmp);
-        lv_img_set_pivot(img[i], -offset_x_tmp + 128, -offset_y_tmp + 128);
     }
+
+    offset_x = 128 - (xtile - (int)xtile) * 256;
+    offset_y = 128 - (ytile - (int)ytile) * 256;
+    ESP_LOGI("!!!", "%d %d", offset_x, offset_y);
+    lv_obj_scroll_to(img_base, -offset_x, -offset_y, LV_ANIM_OFF);
+
     xtile_old = xtile;
     ytile_old = ytile;
 }
@@ -314,11 +324,13 @@ static void event_handler_tile(lv_event_t * e)
     if(key == LV_KEY_RIGHT) {
         if (zoom < 17) {
             zoom++;
+            lv_img_cache_set_size(18);
             drawTile(zoom);
         }
     } else if(key == LV_KEY_LEFT) {
         if (zoom > 6) {
             zoom--;
+            lv_img_cache_set_size(18);
             drawTile(zoom);
         }  
     }
@@ -356,14 +368,17 @@ void display_task(void* arg) {
         // for (int i = 0; i < 9; i++) {
         //     lv_img_set_angle(img[i], count % 3600);
         // }
-        // lat -= 0.00005; // широта
-        // lon -= 0.00003; // долгота
-        // drawTile(zoom);
-        
-        lv_obj_scroll_by(img_base, -1, -1, LV_ANIM_ON);
+
+        if (count == 10) {
+            lat -= 0.00005; // широта
+            lon -= 0.00003; // долгота
+            drawTile(zoom);
+            count = 0;
+        }
+
         vTaskDelay(pdMS_TO_TICKS(20));
 
-        count += 60;
+        count += 1;
     }
 }
 
