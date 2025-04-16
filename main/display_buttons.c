@@ -259,8 +259,9 @@ void mapInit() {
     lv_obj_set_style_clip_corner(img_base, true, 0);
     lv_obj_set_size(img_base, 300, 300);
     // lv_obj_clear_flag(img_base, LV_OBJ_FLAG_FLOATING);
-    // lv_obj_remove_style(img_base, NULL, LV_PART_SCROLLBAR);
-    lv_obj_clear_flag(img_base, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_remove_style(img_base, NULL, LV_PART_SCROLLBAR);
+
+    // lv_obj_clear_flag(img_base, LV_OBJ_FLAG_SCROLLABLE);
     
     lv_obj_align(img_base, LV_ALIGN_CENTER, 0, 0);
     for (int i = 0; i < 9; i++) {
@@ -270,6 +271,9 @@ void mapInit() {
         }
     }
 }
+
+static float xtile_old;
+static float ytile_old;
 
 void drawTile(int zoom) {
     // int zoom = 17;
@@ -291,15 +295,15 @@ void drawTile(int zoom) {
         int ij = i % 3;
         int offset_x_tmp = offset_x + 256 * (ij - 1);
         int offset_y_tmp = offset_y + 256 * (ii - 1);
-
-        sprintf(path, "A:/sdcard/Tiles/%d/%d/%d.png", zoom, (int)xtile + ij - 1, (int)ytile + ii - 1);
-        lv_img_set_src(img[i], path);
+        if ((int)xtile != (int)xtile_old || (int)ytile != (int)ytile_old) {
+            sprintf(path, "A:/sdcard/Tiles/%d/%d/%d.png", zoom, (int)xtile + ij - 1, (int)ytile + ii - 1);
+            lv_img_set_src(img[i], path);
+        }
         lv_obj_align(img[i], LV_ALIGN_CENTER, offset_x_tmp, offset_y_tmp);
-
         lv_img_set_pivot(img[i], -offset_x_tmp + 128, -offset_y_tmp + 128);
     }
-
-    centerCircle();
+    xtile_old = xtile;
+    ytile_old = ytile;
 }
 
 static int zoom = 17;
@@ -325,6 +329,7 @@ static void event_handler_tile(lv_event_t * e)
 void drawMap() {
     mapInit();
     drawTile(zoom);
+    centerCircle();
     lv_group_add_obj(g, img[4]);
     lv_obj_add_event_cb(img[4], event_handler_tile, LV_EVENT_KEY, NULL);
 }
@@ -351,13 +356,12 @@ void display_task(void* arg) {
         // for (int i = 0; i < 9; i++) {
         //     lv_img_set_angle(img[i], count % 3600);
         // }
-        lat -= 0.00005; // широта
-        lon -= 0.00003; // долгота
-        drawTile(zoom);
+        // lat -= 0.00005; // широта
+        // lon -= 0.00003; // долгота
+        // drawTile(zoom);
         
-        
+        lv_obj_scroll_by(img_base, -1, -1, LV_ANIM_ON);
         vTaskDelay(pdMS_TO_TICKS(20));
-        // vTaskDelayUntil(&prew, pdMS_TO_TICKS(20));
 
         count += 60;
     }
