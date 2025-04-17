@@ -262,7 +262,7 @@ void mapInit() {
     // lv_obj_remove_style(img_base, NULL, LV_PART_SCROLLBAR);
 
     // lv_obj_clear_flag(img_base, LV_OBJ_FLAG_SCROLLABLE);
-    
+    lv_img_cache_set_size(18);
     lv_obj_align(img_base, LV_ALIGN_CENTER, 0, 0);
     for (int i = 0; i < 9; i++) {
         // init
@@ -282,9 +282,6 @@ void drawTile(int zoom) {
     float xtile;
     float ytile;
     mathTiles(zoom, lat, lon, &xtile, &ytile);
-    // ESP_LOGI("MATH", "xtile = %f  ytile = %f", xtile, ytile);
-    // int offset_x = 128 - (xtile - (int)xtile) * 256;
-    // int offset_y = 128 - (ytile - (int)ytile) * 256;
 
     int offset_x = 0;
     int offset_y = 0;
@@ -292,25 +289,22 @@ void drawTile(int zoom) {
     if ((int)xtile != (int)xtile_old || (int)ytile != (int)ytile_old) {
         char path[50];
         lv_png_init();
-        ESP_LOGI("!!!", "REDRAW");
-        lv_img_cache_set_size(18);
+
         for (int i = 0; i < 9; i++) {
-            // fill img
             int ii = i / 3;
             int ij = i % 3;
-            offset_x = 256 * (ij - 1);
-            offset_y = 256 * (ii - 1);
+            offset_x = 256 * ij;
+            offset_y = 256 * ii;
             sprintf(path, "A:/sdcard/Tiles/%d/%d/%d.png", zoom, (int)xtile + ij - 1, (int)ytile + ii - 1);
             lv_img_set_src(img[i], path);
             lv_obj_align(img[i], LV_ALIGN_CENTER, offset_x, offset_y);
-            lv_img_set_pivot(img[i], -offset_x + 128, -offset_y + 128);
+            // lv_img_set_pivot(img[i], -offset_x + 128, -offset_y + 128);
         }
     }
 
     offset_x = 128 - (xtile - (int)xtile) * 256;
     offset_y = 128 - (ytile - (int)ytile) * 256;
-    ESP_LOGI("!!!", "%d %d", offset_x, offset_y);
-    lv_obj_scroll_to(img_base, -offset_x, -offset_y, LV_ANIM_OFF);
+    lv_obj_scroll_to(img_base, -offset_x + 256, -offset_y + 256, LV_ANIM_OFF);
 
     xtile_old = xtile;
     ytile_old = ytile;
@@ -369,12 +363,12 @@ void display_task(void* arg) {
         //     lv_img_set_angle(img[i], count % 3600);
         // }
 
-        if (count == 10) {
+        // if (count == 10) {
             lat -= 0.00005; // широта
             lon -= 0.00003; // долгота
             drawTile(zoom);
-            count = 0;
-        }
+            // count = 0;
+        // }
 
         vTaskDelay(pdMS_TO_TICKS(20));
 
